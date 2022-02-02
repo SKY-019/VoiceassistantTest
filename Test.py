@@ -37,28 +37,30 @@ def main():
             flow = InstalledAppFlow.from_client_secrets_file("credentials.json",SCOPES)
             creds = flow.run_local_server(port=0)
         with open("token.json", "w") as token:
-            token.write(creds.to_jason())
+            token.write(creds.to_json())
     
     try:
-        service = build("calender", "v3", Credentials=creds)
+        service = build('calendar', 'v3', credentials=creds)
         time = datetime.datetime.now(tz=pytz.UTC).astimezone(pytz.timezone("Europe/Berlin"))
         
-        now = time.strftime("%B %A %d, %H:%M")
-        print("Getting upcoming events")
-        events_result = service.events().list(CalendarID="primary", timeMin=now, maxResults=10,
-                                              singleEvents=True, orderBy="startTime").execute()
-        events = events_result.get("items", [])
+        now = time.strftime("%B %A %d, %H:%M") # Hier liegt das problem
+        print('Getting the upcoming 10 events')
+        events_result = service.events().list(calendarId='primary', timeMin=now,
+                                              maxResults=10, singleEvents=True,
+                                              orderBy='startTime').execute()
+        events = events_result.get('items', [])
         
-        if not events: 
-            print("No upcoming events found.")
+        if not events:
+            print('No upcoming events found.')
             return
         
         for event in events:
-            start = event["start"].get("dateTime", event["event"].get("date"))
-            print(start, event["summary"])
-            
-    except HttpError as error:
-        print("An error occurred: %s" % error)
+            start = event['start'].get('dateTime', event['start'].get('date'))
+            print(start, event['summary'])
 
-if __name__ == "__main__":
+    except HttpError as error:
+        print('An error occurred: %s' % error)
+
+
+if __name__ == '__main__':
     main()
